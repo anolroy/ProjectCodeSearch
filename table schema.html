@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Schema Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            margin: 0;
+            height: 100vh;
+        }
+        .left-panel {
+            width: 30%;
+            padding: 10px;
+            border-right: 1px solid #ccc;
+            overflow-y: auto;
+        }
+        .right-panel {
+            width: 70%;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            cursor: pointer;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        li:hover {
+            background-color: #f0f0f0;
+        }
+        .schema {
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+    <script>
+        const tables = {
+            "Agent": `CREATE TABLE Agent (
+    AgentID TEXT, 
+    AgentName TEXT, 
+    AgentAddressLine1 TEXT, 
+    AgentAddressLine2 TEXT, 
+    AgentAddressLine3 TEXT, 
+    AgentAddressLine4 TEXT, 
+    AgentPostCode TEXT, 
+    AgentOfficeEmail TEXT, 
+    AgentPersonalEmail TEXT, 
+    AgentHomeTel TEXT, 
+    AgentMobile TEXT, 
+    AgentOffice TEXT, 
+    AgentOfficeAddressLine1 TEXT, 
+    AgentOfficeAddressLine2 TEXT, 
+    AgentOfficeAddressLine3 TEXT, 
+    AgentOfficeAddressLine4 TEXT, 
+    AgentOfficePostCode TEXT, 
+    AgentOfficeTel TEXT, 
+    AgentOfficePos TEXT, 
+    AgentMemo MEMO, 
+    AgentSageSuppAC TEXT, 
+    Note TEXT, 
+    BANK_ID TEXT, 
+    CommissionType UNKNOWN, 
+    CommissionAmt INTEGER, 
+    VATReg TEXT, 
+    AcBalance UNKNOWN, 
+    PaymentMethod TEXT, 
+    BacsRef TEXT, 
+    HomeOfficeAdd BIT, 
+    InactiveAgent BIT, 
+    InactiveDate DATETIME, 
+    spare1 TEXT, 
+    spare2 TEXT, 
+    spare3 TEXT, 
+    spare4 TEXT, 
+    spare5 TEXT, 
+    spare6 TEXT, 
+    spare7 TEXT, 
+    spare8 TEXT, 
+    spare9 TEXT, 
+    spare10 TEXT, 
+    spare11 TEXT, 
+    spare12 TEXT
+);`,
+
+            "AttachedFile": `CREATE TABLE AttachedFile (
+    FileID LONG, 
+    FilePath TEXT, 
+    FileName TEXT, 
+    OwnerID TEXT, 
+    NewFileName TEXT, 
+    Entity TEXT, 
+    NewFilePath TEXT, 
+    FileType TEXT, 
+    spare1 TEXT, 
+    spare2 TEXT, 
+    spare3 TEXT, 
+    spare4 TEXT, 
+    isLinked BIT, 
+    Description TEXT, 
+    DateAdded DATETIME
+);`,
+            
+            "BACSPaymentRun": `CREATE TABLE BACSPaymentRun (
+    RunNo LONG, 
+    RunDate DATETIME, 
+    LineNo LONG, 
+    EB LONG, 
+    Description TEXT
+);`
+        };
+
+        function searchTables() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const listItems = document.querySelectorAll('#table-list li');
+
+            listItems.forEach(item => {
+                if (item.textContent.toLowerCase().includes(query)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function showSchema(tableName) {
+            const schema = tables[tableName] || 'Schema not found.';
+            document.getElementById('schema-display').textContent = schema;
+        }
+    </script>
+</head>
+<body>
+    <div class="left-panel">
+        <input type="text" id="search" placeholder="Search tables..." onkeyup="searchTables()">
+        <ul id="table-list">
+            <li onclick="showSchema('Agent')">Agent</li>
+            <li onclick="showSchema('AttachedFile')">AttachedFile</li>
+            <li onclick="showSchema('BACSPaymentRun')">BACSPaymentRun</li>
+            <!-- Add more table names dynamically as needed -->
+        </ul>
+    </div>
+    <div class="right-panel">
+        <h2>Table Schema</h2>
+        <div id="schema-display" class="schema">Select a table to view its schema.</div>
+    </div>
+</body>
+</html>

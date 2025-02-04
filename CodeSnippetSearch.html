@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Code Snippets</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #searchInput {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+        #container {
+            display: flex;
+        }
+        #leftSection, #rightSection {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #f9f9f9;
+            margin-right: 10px;
+            overflow-y: auto;
+            height: 80vh;
+        }
+        #leftSection {
+            width: 30%;
+        }
+        #rightSection {
+            width: 70%;
+        }
+        .snippet {
+            margin-bottom: 20px;
+        }
+        .snippet h3 {
+            margin: 0 0 5px;
+        }
+        .snippet pre {
+            margin: 0;
+            background: #eee;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <input type="text" id="searchInput" placeholder="Search code snippets...">
+    <div id="container">
+        <div id="leftSection">
+            <h3>Form Names</h3>
+            <ul id="formNameList"></ul>
+        </div>
+        <div id="rightSection">
+            <h3>Code Snippets</h3>
+            <div id="resultsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize codeData as an empty array
+        let codeData = [];
+
+        // Fetch data from the external JSON file
+        async function getData() {
+            try {
+                const response = await fetch('output.json'); // Fetch the JSON file
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                let ccodeData = await response.json(); // Parse the JSON data
+                codeData =ccodeData.data;
+                //console.log('Fetched data:', codeData); // Log the data to confirm it's fetched
+            } catch (error) {
+                console.error('Error fetching the JSON file:', error);
+            }
+        }
+
+        // Call the getData function to fetch JSON data
+        getData();
+
+        const searchInput = document.getElementById('searchInput');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const formNameList = document.getElementById('formNameList');
+
+        // Event listener for search input
+        searchInput.addEventListener('keyup', () => {
+            const query = searchInput.value.toLowerCase().trim(); // Get the search query
+            resultsContainer.innerHTML = '';
+            formNameList.innerHTML = '';
+
+            if (query) {
+                const results = [];
+
+                // Iterate through each object in the array
+                codeData.forEach((item, index) => {
+                    // Check if any key or value in the object matches the query
+                    Object.entries(item).forEach(([key, value]) => {
+                        const keyString = key.toLowerCase();
+                        const valueString = value?.toLowerCase() || '';
+                        if (keyString.includes(query) || valueString.includes(query)) {
+                            // Add the matching key-value pair to the results array
+                            results.push({ formname: item.name, name: key, code: value });
+                            // Add the matching key-value pair to the results array
+                           // results.push({ name: key, code: value });
+                        }
+                    });
+                });
+
+                // Display search results
+                if (results.length > 0) {
+                    const uniqueFormNames = new Set(results.map(result => result.formname));
+                    uniqueFormNames.forEach(formname => {
+                        const nameItem = document.createElement('li');
+                        nameItem.textContent = formname;
+                        formNameList.appendChild(nameItem);
+                    });
+
+                    results.forEach(result => {
+                        const snippetDiv = document.createElement('div');
+                        snippetDiv.classList.add('snippet');                        
+                        snippetDiv.innerHTML = `
+                            <h3>${result.name}</h3>
+                            <pre><code>${result.code}</code></pre>
+                        `;
+
+                        resultsContainer.appendChild(snippetDiv);
+                    });
+                } else {
+                    resultsContainer.innerHTML = '<p>No matching code snippets found.</p>';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
