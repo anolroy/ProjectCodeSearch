@@ -60,6 +60,7 @@
     <div id="container">
         <div id="leftSection">
             <h3>Form Names</h3>
+            <input type="checkbox" id="selectAll" /> Select All
             <ul id="formNameList"></ul>
         </div>
         <div id="rightSection">
@@ -97,9 +98,18 @@
         const searchInput = document.getElementById('searchInput');
         const resultsContainer = document.getElementById('resultsContainer');
         const formNameList = document.getElementById('formNameList');
+        const selectAllCheckbox = document.getElementById('selectAll');
 
         searchInput.addEventListener('keyup', () => {
             updateResults();
+        });
+
+        selectAllCheckbox.addEventListener('change', () => {
+            const checkboxes = formNameList.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+            filterResults();
         });
 
         function updateResults() {
