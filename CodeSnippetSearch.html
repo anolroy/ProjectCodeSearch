@@ -7,30 +7,36 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         #searchInput {
             width: 100%;
             padding: 10px;
-            margin-bottom: 20px;
             box-sizing: border-box;
         }
         #container {
             display: flex;
+            flex-grow: 1;
+            height: calc(100vh - 40px); /* Adjust for input height */
         }
         #leftSection, #rightSection {
             padding: 10px;
             border: 1px solid #ccc;
-            border-radius: 5px;
             background: #f9f9f9;
-            margin-right: 10px;
             overflow-y: auto;
-            height: 80vh;
         }
         #leftSection {
             width: 30%;
         }
         #rightSection {
             width: 70%;
+        }
+        #formNameList {
+            list-style-type: none; /* Remove bullets */
+            padding: 0; /* Remove default padding */
         }
         .snippet {
             margin-bottom: 20px;
@@ -46,6 +52,8 @@
             overflow-x: auto;
         }
     </style>
+    <!-- Include Split.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.0/split.min.js"></script>
 </head>
 <body>
     <input type="text" id="searchInput" placeholder="Search code snippets...">
@@ -61,79 +69,112 @@
     </div>
 
     <script>
-        // Initialize codeData as an empty array
+        // Initialize Split.js
+        Split(['#leftSection', '#rightSection'], {
+            sizes: [30, 70],
+            minSize: 200,
+            gutterSize: 10,
+            cursor: 'col-resize'
+        });
+
         let codeData = [];
 
-        // Fetch data from the external JSON file
         async function getData() {
             try {
-                const response = await fetch('output.json'); // Fetch the JSON file
+                const response = await fetch('output.json');
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
-                let ccodeData = await response.json(); // Parse the JSON data
-                codeData =ccodeData.data;
-                //console.log('Fetched data:', codeData); // Log the data to confirm it's fetched
+                let ccodeData = await response.json();
+                codeData = ccodeData.data;
             } catch (error) {
                 console.error('Error fetching the JSON file:', error);
             }
         }
 
-        // Call the getData function to fetch JSON data
         getData();
 
         const searchInput = document.getElementById('searchInput');
         const resultsContainer = document.getElementById('resultsContainer');
         const formNameList = document.getElementById('formNameList');
 
-        // Event listener for search input
         searchInput.addEventListener('keyup', () => {
-            const query = searchInput.value.toLowerCase().trim(); // Get the search query
+            updateResults();
+        });
+
+        function updateResults() {
+            const query = searchInput.value.toLowerCase().trim();
             resultsContainer.innerHTML = '';
             formNameList.innerHTML = '';
 
             if (query) {
                 const results = [];
 
-                // Iterate through each object in the array
                 codeData.forEach((item, index) => {
-                    // Check if any key or value in the object matches the query
                     Object.entries(item).forEach(([key, value]) => {
                         const keyString = key.toLowerCase();
                         const valueString = value?.toLowerCase() || '';
                         if (keyString.includes(query) || valueString.includes(query)) {
-                            // Add the matching key-value pair to the results array
                             results.push({ formname: item.name, name: key, code: value });
-                            // Add the matching key-value pair to the results array
-                           // results.push({ name: key, code: value });
                         }
                     });
                 });
 
-                // Display search results
                 if (results.length > 0) {
                     const uniqueFormNames = new Set(results.map(result => result.formname));
                     uniqueFormNames.forEach(formname => {
                         const nameItem = document.createElement('li');
-                        nameItem.textContent = formname;
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.value = formname;
+                        checkbox.addEventListener('change', filterResults);
+
+                        nameItem.appendChild(checkbox);
+                        nameItem.appendChild(document.createTextNode(formname));
                         formNameList.appendChild(nameItem);
                     });
 
-                    results.forEach(result => {
-                        const snippetDiv = document.createElement('div');
-                        snippetDiv.classList.add('snippet');                        
-                        snippetDiv.innerHTML = `
-                            <h3>${result.name}</h3>
-                            <pre><code>${result.code}</code></pre>
-                        `;
-
-                        resultsContainer.appendChild(snippetDiv);
-                    });
+                    displayResults(results);
                 } else {
                     resultsContainer.innerHTML = '<p>No matching code snippets found.</p>';
                 }
             }
-        });
+        }
+
+        function filterResults() {
+            const checkedBoxes = Array.from(formNameList.querySelectorAll('input[type="checkbox"]:checked'));
+            const selectedFormNames = checkedBoxes.map(checkbox => checkbox.value);
+
+            const query = searchInput.value.toLowerCase().trim();
+            const filteredResults = [];
+
+            codeData.forEach((item) => {
+                if (selectedFormNames.includes(item.name)) {
+                    Object.entries(item).forEach(([key, value]) => {
+                        const keyString = key.toLowerCase();
+                        const valueString = value?.toLowerCase() || '';
+                        if (keyString.includes(query) || valueString.includes(query)) {
+                            filteredResults.push({ formname: item.name, name: key, code: value });
+                        }
+                    });
+                }
+            });
+
+            displayResults(filteredResults);
+        }
+
+        function displayResults(results) {
+            resultsContainer.innerHTML = '';
+            results.forEach(result => {
+                const snippetDiv = document.createElement('div');
+                snippetDiv.classList.add('snippet');
+                snippetDiv.innerHTML = `
+                    <h3>${result.name}</h3>
+                    <pre><code>${result.code}</code></pre>
+                `;
+                resultsContainer.appendChild(snippetDiv);
+            });
+        }
     </script>
 </body>
 </html>
